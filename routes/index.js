@@ -1,36 +1,52 @@
-import express from 'express';
-import auth from '../utils/auth';
-import { getStatus, getStats } from '../controllers/AppController';
-import { postNew, getMe } from '../controllers/UsersController';
-import { getConnect, getDisconnect } from '../controllers/AuthController';
-import { postUpload } from '../controllers/FilesController';
+import AppController from '../controllers/AppController';
+import UsersController from '../controllers/UsersController';
+import AuthController from '../controllers/AuthController';
+import FilesController from '../controllers/FilesController';
 
-const router = express.Router();
+/* eslint-disable */
+const express = require('express');
 
-// AppController routes
+const router = (app) => {
+  const paths = express.Router();
+  app.use(express.json());
+  app.use('/', paths);
 
-// returns true if Redis is alive and if the DB is alive too
-router.get('/status', getStatus);
-// returns the number of users and files in DB
-router.get('/stats', getStats);
+  paths.get('/status', (request, response) =>
+    AppController.getStatus(request, response)
+  );
+  paths.get('/stats', (request, response) =>
+    AppController.getStats(request, response)
+  );
+  paths.post('/users', (request, response) =>
+    UsersController.postNew(request, response)
+  );
+  paths.get('/connect', (request, response) =>
+    AuthController.getConnect(request, response)
+  );
+  paths.get('/disconnect', (request, response) =>
+    AuthController.getDisconnect(request, response)
+  );
+  paths.get('/users/me', (request, response) =>
+    UsersController.getMe(request, response)
+  );
+  paths.post('/files', (request, response) =>
+    FilesController.postUpload(request, response)
+  );
+  paths.get('/files/:id', (request, response) =>
+    FilesController.getShow(request, response)
+  );
+  paths.get('/files', (request, response) =>
+    FilesController.getIndex(request, response)
+  );
+  paths.put('/files/:id/publish', (request, response) =>
+    FilesController.putPublish(request, response)
+  );
+  paths.put('/files/:id/unpublish', (request, response) =>
+    FilesController.putUnpublish(request, response)
+  );
+  paths.get('/files/:id/data', (request, response) =>
+    FilesController.getFile(request, response)
+  );
+};
 
-// UsersController routes
-
-// creates a new user
-router.post('/users', postNew);
-// retrieves the user based on the token used
-router.get('/users/me', auth, getMe);
-
-// AuthController routes
-
-// sign-in the user by generating a new authentication token
-router.get('/connect', getConnect);
-// sign-out the user based on the token
-router.get('/disconnect', auth, getDisconnect);
-
-// FilesController routs
-
-// creates a new file in the db and in disk
-router.post('/files', auth, postUpload);
-
-export default router;
+module.exports = router;
